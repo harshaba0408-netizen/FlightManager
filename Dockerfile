@@ -1,5 +1,5 @@
 # Stage 1: Compile Java Source
-FROM openjdk:17-jdk-slim AS builder
+FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /build
 
