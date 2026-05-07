@@ -1,0 +1,62 @@
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+         https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd"
+         version="5.0">
+
+    <!-- 🔹 Add Flight -->
+    <servlet>
+        <servlet-name>AddFlight</servlet-name>
+        <servlet-class>AddFlightServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>AddFlight</servlet-name>
+        <url-pattern>/addFlight</url-pattern>
+    </servlet-mapping>
+
+    <!-- 🔹 View Flights -->
+    <servlet>
+        <servlet-name>ViewFlights</servlet-name>
+        <servlet-class>ViewFlightsServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>ViewFlights</servlet-name>
+        <url-pattern>/viewFlights</url-pattern>
+    </servlet-mapping>
+
+    <!-- 🔹 Sort by Time -->
+    <servlet>
+        <servlet-name>SortTime</servlet-name>
+        <servlet-class>SortTimeServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SortTime</servlet-name>
+        <url-pattern>/sortTime</url-pattern>
+    </servlet-mapping>
+
+    <!-- 🔹 Sort by Price -->
+    <servlet>
+        <servlet-name>SortPrice</servlet-name>
+        <servlet-class>SortPriceServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>SortPrice</servlet-name>
+        <url-pattern>/sortPrice</url-pattern>
+    </servlet-mapping>
+
+    <!-- 🔹 Filter (<5000) -->
+    <servlet>
+        <servlet-name>Filter</servlet-name>
+        <servlet-class>FilterServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Filter</servlet-name>
+        <url-pattern>/filter</url-pattern>
+    </servlet-mapping>
+
+</web-app>

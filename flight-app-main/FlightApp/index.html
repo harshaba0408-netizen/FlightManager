@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkyWay Airlines – Login</title>
+  <meta name="description" content="Login to SkyWay Airlines flight management portal."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #2563EB;
+      --indigo:  #4F46E5;
+      --sky:     #0EA5E9;
+      --glass:   rgba(255,255,255,0.08);
+      --border:  rgba(255,255,255,0.15);
+      --text:    #E2E8F0;
+      --muted:   rgba(226,232,240,0.55);
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #020b18;
+      color: var(--text);
+    }
+
+    /* ── Animated sky background ── */
+    .sky-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 120% 80% at 50% 0%,
+        #0c1e3d 0%, #07111f 55%, #020b18 100%);
+    }
+
+    /* Stars */
+    .stars { position: fixed; inset: 0; z-index: 1; overflow: hidden; }
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: #fff;
+      animation: twinkle var(--d, 3s) infinite ease-in-out alternate;
+    }
+
+    @keyframes twinkle {
+      from { opacity: 0.1; transform: scale(0.8); }
+      to   { opacity: 0.9; transform: scale(1.2); }
+    }
+
+    /* Horizon glow */
+    .horizon {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 35vh;
+      z-index: 1;
+      background: linear-gradient(to top, rgba(14,165,233,0.18) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Clouds */
+    .clouds { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+    .cloud {
+      position: absolute;
+      border-radius: 50px;
+      background: rgba(255,255,255,0.04);
+      filter: blur(18px);
+      animation: drift linear infinite;
+    }
+    @keyframes drift {
+      from { transform: translateX(-30%); }
+      to   { transform: translateX(110vw); }
+    }
+
+    /* Animated plane trail */
+    .plane-wrap {
+      position: fixed; top: 18%; left: -160px; z-index: 3;
+      animation: fly 18s linear infinite;
+    }
+    @keyframes fly {
+      0%   { left: -160px; top: 22%; opacity: 0; }
+      5%   { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { left: 110vw; top: 10%; opacity: 0; }
+    }
+    .plane-svg { width: 110px; filter: drop-shadow(0 0 18px #38bdf8cc); }
+    .trail {
+      position: absolute; right: 100%; top: 50%;
+      transform: translateY(-50%);
+      width: 180px; height: 3px;
+      background: linear-gradient(to left, rgba(56,189,248,0.7), transparent);
+      border-radius: 2px;
+    }
+
+    /* ── Card ── */
+    .card-wrap {
+      position: relative; z-index: 10;
+      perspective: 1200px;
+    }
+    .card {
+      width: 320px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 22px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06) inset,
+        0 32px 80px rgba(0,0,0,0.55),
+        0 0 60px rgba(14,165,233,0.08);
+      transform-style: preserve-3d;
+      transition: transform 0.12s ease-out;
+    }
+
+    /* Logo */
+    .logo-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px;
+    }
+    .logo-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--sky), var(--indigo));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 20px rgba(14,165,233,0.4);
+    }
+    .logo-text { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-sub  { font-size: 0.65rem; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 1px; }
+
+    h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px; }
+    .subtitle { color: var(--muted); font-size: 0.82rem; margin-bottom: 20px; }
+
+    /* Error banner */
+    .error-msg {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: #fca5a5;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* Inputs */
+    .field { margin-bottom: 12px; }
+    label  { display: block; font-size: 0.78rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+    .input-wrap { position: relative; }
+    .input-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      font-size: 16px; pointer-events: none; opacity: 0.55;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%; height: 44px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 16px 0 40px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+    }
+    input:focus {
+      border-color: var(--sky);
+      background: rgba(14,165,233,0.07);
+      box-shadow: 0 0 0 3px rgba(14,165,233,0.18);
+    }
+    input::placeholder { color: rgba(226,232,240,0.3); }
+
+    /* Eye toggle */
+    .eye-btn {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      font-size: 16px; line-height: 1; padding: 2px;
+      transition: color 0.2s;
+    }
+    .eye-btn:hover { color: var(--sky); }
+
+    /* Remember row */
+    .row-between {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .check-label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.88rem; color: var(--muted); cursor: pointer;
+    }
+    .check-label input[type="checkbox"] { accent-color: var(--sky); width: 15px; height: 15px; }
+    .forgot { font-size: 0.88rem; color: var(--sky); text-decoration: none; opacity: 0.85; transition: opacity 0.2s; }
+    .forgot:hover { opacity: 1; text-decoration: underline; }
+
+    /* Submit */
+    .btn-login {
+      width: 100%; height: 48px;
+      background: linear-gradient(135deg, var(--sky) 0%, var(--indigo) 100%);
+      border: none; border-radius: 12px;
+      color: #fff; font-family: inherit; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; letter-spacing: 0.3px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 8px 30px rgba(14,165,233,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-login:hover  { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(14,165,233,0.45); }
+    .btn-login:active { transform: translateY(0); }
+    .btn-login .ripple {
+      position: absolute; border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      transform: scale(0); animation: ripple 0.55s linear;
+      pointer-events: none;
+    }
+    @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+
+    /* Hint */
+    .hint {
+      text-align: center; margin-top: 18px;
+      font-size: 0.8rem; color: var(--muted);
+    }
+    .hint span { color: var(--sky); font-weight: 500; }
+
+    /* Card tilt effect */
+    @media (prefers-reduced-motion: no-preference) {
+      .card { will-change: transform; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="sky-bg"></div>
+<div class="stars" id="stars"></div>
+<div class="horizon"></div>
+<div class="clouds" id="clouds"></div>
+
+<!-- Animated plane -->
+<div class="plane-wrap">
+  <div class="trail"></div>
+  <svg class="plane-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M60 28L8 6l8 18-8 4 8 6-4 4 16-2 8 18 24-22z" fill="url(#pg)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+    <defs>
+      <linearGradient id="pg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#818cf8"/>
+      </linearGradient>
+    </defs>
+  </svg>
+</div>
+
+<!-- Login Card -->
+<div class="card-wrap" id="cardWrap">
+  <div class="card" id="card">
+    <div class="logo-row">
+      <div class="logo-icon">✈</div>
+      <div>
+        <div class="logo-text">SkyWay</div>
+        <div class="logo-sub">Airlines Portal</div>
+      </div>
+    </div>
+
+    <h1>Welcome Back</h1>
+    <p class="subtitle">Sign in to manage your flights</p>
+
+    <div class="error-msg" id="errorMsg">
+      ✈ Invalid username or password. Please try again.
+    </div>
+
+    <form action="login" method="post" id="loginForm">
+      <div class="field">
+        <label for="username">Username</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="username" name="username"
+                 placeholder="Enter your username" autocomplete="username" required/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" name="password"
+                 placeholder="Enter your password" autocomplete="current-password" required/>
+          <button type="button" class="eye-btn" id="eyeBtn" title="Toggle password">👁</button>
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label class="check-label">
+          <input type="checkbox" id="remember"/> Remember me
+        </label>
+        <a href="#" class="forgot">Forgot password?</a>
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">
+        Login &nbsp;✈
+      </button>
+    </form>
+
+    <p class="hint">Default: <span>admin</span> / <span>admin123</span></p>
+  </div>
+</div>
+
+<script>
+  // ── Stars ──
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 160; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `
+      width:${size}px;height:${size}px;
+      top:${Math.random()*100}%;left:${Math.random()*100}%;
+      --d:${(Math.random()*4+2).toFixed(1)}s;
+      animation-delay:${(Math.random()*5).toFixed(1)}s;
+    `;
+    starsEl.appendChild(s);
+  }
+
+  // ── Clouds ──
+  const cloudsEl = document.getElementById('clouds');
+  const cloudDefs = [
+    { w:340, h:60,  top:'15%', dur:'55s', delay:'0s'  },
+    { w:220, h:45,  top:'35%', dur:'70s', delay:'10s' },
+    { w:280, h:50,  top:'58%', dur:'48s', delay:'5s'  },
+    { w:180, h:38,  top:'72%', dur:'62s', delay:'18s' },
+    { w:400, h:70,  top:'82%', dur:'80s', delay:'3s'  },
+  ];
+  cloudDefs.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'cloud';
+    el.style.cssText = `width:${c.w}px;height:${c.h}px;top:${c.top};
+      animation-duration:${c.dur};animation-delay:${c.delay};`;
+    cloudsEl.appendChild(el);
+  });
+
+  // ── 3D Card Tilt ──
+  const wrap = document.getElementById('cardWrap');
+  const card = document.getElementById('card');
+  wrap.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width  / 2;
+    const cy = rect.top  + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width  / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    card.style.transform = `rotateY(${dx*10}deg) rotateX(${-dy*8}deg) translateZ(8px)`;
+  });
+  wrap.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+
+  // ── Password toggle ──
+  const pwdInput = document.getElementById('password');
+  document.getElementById('eyeBtn').addEventListener('click', () => {
+    pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+  });
+
+  // ── Ripple on button ──
+  document.getElementById('loginBtn').addEventListener('click', function(e) {
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    const d = Math.max(this.clientWidth, this.clientHeight);
+    const rect = this.getBoundingClientRect();
+    r.style.cssText = `width:${d}px;height:${d}px;
+      left:${e.clientX-rect.left-d/2}px;top:${e.clientY-rect.top-d/2}px;`;
+    this.appendChild(r);
+    setTimeout(() => r.remove(), 600);
+  });
+
+  // ── Show error from URL param ──
+  const params = new URLSearchParams(location.search);
+  if (params.get('error')) {
+    document.getElementById('errorMsg').classList.add('show');
+  }
+</script>
+</body>
+</html>

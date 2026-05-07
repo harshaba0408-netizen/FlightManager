@@ -1,0 +1,14 @@
+# Ignore local Tomcat server
+tomcat/
+tomcat.zip
+
+# Ignore zip archives
+*.zip
+
+# Ignore compiled classes (they will be rebuilt in Docker/Render)
+flight-app-main/FlightApp/WEB-INF/classes/
+**/*.class
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

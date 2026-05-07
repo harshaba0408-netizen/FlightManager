@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SkyWay – Flight Dashboard</title>
+  <meta name="description" content="Manage flights with SkyWay Airlines portal."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sky:    #0EA5E9;
+      --indigo: #4F46E5;
+      --glass:  rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+      --text:   #E2E8F0;
+      --muted:  rgba(226,232,240,0.55);
+      --bg:     #020b18;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Subtle background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(79,70,229,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(14,165,233,0.12) 0%, transparent 60%),
+        #020b18;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 36px; height: 68px;
+      background: rgba(2,11,24,0.8);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; }
+    .nav-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--sky), var(--indigo));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .nav-brand { font-size: 1.2rem; font-weight: 700; }
+    .nav-links  { display: flex; gap: 6px; }
+    .nav-link {
+      padding: 7px 16px;
+      border-radius: 9px;
+      font-size: 0.9rem; font-weight: 500;
+      color: var(--muted); text-decoration: none;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--text);
+      background: rgba(255,255,255,0.07);
+    }
+    .btn-logout {
+      padding: 8px 20px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--glass);
+      color: var(--muted);
+      font-family: inherit; font-size: 0.88rem; font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-logout:hover { color: #f87171; border-color: rgba(248,113,113,0.4); }
+
+    /* ── Main ── */
+    main { max-width: 1060px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .page-title   { font-size: 2rem; font-weight: 800; letter-spacing: -1px; margin-bottom: 6px; }
+    .page-sub     { color: var(--muted); margin-bottom: 40px; }
+
+    /* Stat cards */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 44px; }
+    .stat-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      backdrop-filter: blur(14px);
+    }
+    .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .stat-val   { font-size: 1.9rem; font-weight: 700; }
+    .stat-icon  { font-size: 28px; margin-bottom: 12px; }
+
+    /* Section */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-title { font-size: 1.15rem; font-weight: 700; }
+
+    /* Add flight form card */
+    .form-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      backdrop-filter: blur(14px);
+      margin-bottom: 40px;
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    label  { font-size: 0.78rem; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .inp-wrap { position: relative; }
+    .inp-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; opacity: 0.5; font-size: 15px; }
+    input[type=text], input[type=number] {
+      width: 100%; height: 48px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0 14px 0 40px;
+      color: var(--text);
+      font-family: inherit; font-size: 0.94rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus {
+      border-color: var(--sky);
+      box-shadow: 0 0 0 3px rgba(14,165,233,0.18);
+    }
+    input::placeholder { color: rgba(226,232,240,0.25); }
+
+    .form-actions { margin-top: 20px; display: flex; gap: 12px; }
+    .btn-primary {
+      height: 48px; padding: 0 28px;
+      background: linear-gradient(135deg, var(--sky), var(--indigo));
+      border: none; border-radius: 12px;
+      color: #fff; font-family: inherit; font-size: 0.94rem; font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(14,165,233,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(14,165,233,0.4); }
+
+    .btn-outline {
+      height: 48px; padding: 0 22px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--muted); font-family: inherit; font-size: 0.94rem; font-weight: 500;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--sky); color: var(--sky); }
+
+    /* Quick links */
+    .quick-links { display: flex; gap: 12px; flex-wrap: wrap; }
+    .quick-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 20px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      font-size: 0.92rem; font-weight: 500; color: var(--muted);
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .quick-link:hover {
+      border-color: var(--sky);
+      color: var(--sky);
+      background: rgba(14,165,233,0.07);
+    }
+    .quick-link span { font-size: 18px; }
+    /* Table styles */
+    .results-section {
+      margin-top: 40px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      backdrop-filter: blur(14px);
+      display: none; /* Hidden by default until data is fetched */
+    }
+    .results-section.active { display: block; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th {
+      text-align: left;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.94rem;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+
+    .price-tag {
+      color: var(--sky);
+      font-weight: 600;
+    }
+
+    /* Toast notification */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: linear-gradient(135deg, var(--sky), var(--indigo));
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+    }
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<nav>
+  <div class="nav-logo">
+    <div class="nav-icon">✈</div>
+    <div class="nav-brand">SkyWay</div>
+  </div>
+  <div class="nav-links">
+    <a href="#" class="nav-link active" onclick="showSection('home')">Dashboard</a>
+    <a href="#" class="nav-link" onclick="fetchFlights('view')">All Flights</a>
+    <a href="#" class="nav-link" onclick="fetchFlights('filter')">Filter (< ₹5k)</a>
+    <a href="#" class="nav-link" onclick="fetchFlights('sortPrice')">Sort Price</a>
+    <a href="#" class="nav-link" onclick="fetchFlights('sortTime')">Sort Time</a>
+  </div>
+  <button class="btn-logout" onclick="location.href='index.html'">🚪 Logout</button>
+</nav>
+
+<main>
+  <div id="home-section">
+    <h1 class="page-title">✈ Flight Dashboard</h1>
+    <p class="page-sub">Manage and monitor all flights in one place</p>
+
+    <div class="stats">
+      <div class="stat-card" onclick="document.getElementById('fno').focus()">
+        <div class="stat-icon">🛫</div>
+        <div class="stat-label">Add Flight</div>
+        <div class="stat-val">+</div>
+      </div>
+      <div class="stat-card" onclick="fetchFlights('view')">
+        <div class="stat-icon">🌏</div>
+        <div class="stat-label">View All</div>
+        <div class="stat-val">→</div>
+      </div>
+      <div class="stat-card" onclick="fetchFlights('filter')">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-label">Filter</div>
+        <div class="stat-val">∼</div>
+      </div>
+      <div class="stat-card" onclick="fetchFlights('sortPrice')">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label">By Price</div>
+        <div class="stat-val">↑</div>
+      </div>
+    </div>
+
+    <!-- Add Flight Form -->
+    <div class="section-header">
+      <div class="section-title">➕ Add New Flight</div>
+    </div>
+    <div class="form-card">
+      <form id="addFlightForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="fno">Flight Number</label>
+            <div class="inp-wrap">
+              <span class="inp-icon">✈</span>
+              <input type="text" id="fno" name="fno" placeholder="e.g. AI-202" required/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="dest">Destination</label>
+            <div class="inp-wrap">
+              <span class="inp-icon">📍</span>
+              <input type="text" id="dest" name="dest" placeholder="e.g. Mumbai" required/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="time">Departure Time</label>
+            <div class="inp-wrap">
+              <span class="inp-icon">🕐</span>
+              <input type="text" id="time" name="time" placeholder="e.g. 14:30" required/>
+            </div>
+          </div>
+          <div class="field">
+            <label for="price">Price (₹)</label>
+            <div class="inp-wrap">
+              <span class="inp-icon">💵</span>
+              <input type="number" id="price" name="price" placeholder="e.g. 4500" min="0" required/>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">🚀 Add Flight</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div id="results-section" class="results-section">
+    <div class="section-header">
+      <div class="section-title" id="results-title">Flight Listings</div>
+      <button class="btn-logout" style="font-size: 0.75rem; padding: 4px 12px;" onclick="showSection('home')">Back to Home</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Flight No</th>
+          <th>Destination</th>
+          <th>Departure</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody id="flights-table-body">
+        <!-- Data injected here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="section-header">
+    <div class="section-title">⚡ Quick Actions</div>
+  </div>
+  <div class="quick-links">
+    <a href="#" class="quick-link" onclick="fetchFlights('view')"><span>🛬</span> View All Flights</a>
+    <a href="#" class="quick-link" onclick="fetchFlights('filter')"><span>🔍</span> Filter Flights</a>
+    <a href="#" class="quick-link" onclick="fetchFlights('sortPrice')"><span>💰</span> Sort by Price</a>
+    <a href="#" class="quick-link" onclick="fetchFlights('sortTime')"><span>⏰</span> Sort by Time</a>
+  </div>
+</main>
+
+<script>
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerText = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function showSection(section) {
+    const home = document.getElementById('home-section');
+    const results = document.getElementById('results-section');
+    
+    if (section === 'home') {
+      home.style.display = 'block';
+      results.classList.remove('active');
+    } else {
+      home.style.display = 'none';
+      results.classList.add('active');
+    }
+  }
+
+  async function fetchFlights(endpoint) {
+    try {
+      const response = await fetch(endpoint);
+      if (!response.ok) throw new Error('Server error: ' + response.status);
+      
+      let data;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await response.json();
+      } else {
+        throw new Error("Invalid response format from server");
+      }
+      
+      const tbody = document.getElementById('flights-table-body');
+      tbody.innerHTML = '';
+      
+      const titles = {
+        'view': 'All Scheduled Flights',
+        'filter': 'Filtered Flights (< ₹5,000)',
+        'sortPrice': 'Flights Sorted by Price',
+        'sortTime': 'Flights Sorted by Time'
+      };
+      
+      document.getElementById('results-title').innerText = titles[endpoint] || 'Flight Listings';
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 40px; color: var(--muted);">No flights found.</td></tr>';
+      } else {
+        data.forEach(f => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${f.flight_number}</strong></td>
+            <td>${f.destination}</td>
+            <td>${f.departure_time}</td>
+            <td><span class="price-tag">₹${f.price.toLocaleString()}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+      
+      showSection('results');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      console.error('Fetch error:', error);
+      showToast('Error fetching flights: ' + error.message);
+    }
+  }
+
+  // Handle Add Flight Form
+  document.getElementById('addFlightForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const params = new URLSearchParams();
+    for (const pair of formData) {
+      params.append(pair[0], pair[1]);
+    }
+
+    try {
+      const response = await fetch('add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params
+      });
+
+      let result;
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        result = await response.json();
+      } else {
+        const text = await response.text();
+        throw new Error("Server returned non-JSON response: " + text.substring(0, 100));
+      }
+
+      if (response.ok && result.status === 'success') {
+        showToast('🚀 ' + result.message);
+        e.target.reset();
+        if (document.getElementById('results-section').classList.contains('active')) {
+          fetchFlights('view');
+        }
+      } else {
+        showToast('❌ Error: ' + (result.message || 'Unknown server error'));
+      }
+    } catch (error) {
+      showToast('❌ ' + error.message);
+    }
+  });
+</script>
+
+</body>
+</html>
+
